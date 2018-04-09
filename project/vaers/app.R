@@ -50,20 +50,22 @@ ui <- dashboardPage(
     dashboardBody(
       tabItems(
         tabItem(tabName = "geo",
-           plotlyOutput("geo", height = "700px"),
-           plotlyOutput("geo_time", height = "700px")
+           plotlyOutput("geo", height = "500px"),
+           textOutput("click"),
+           
+           plotlyOutput("geo_time", height = "500px")
            
         ),
   
         tabItem(tabName = "demo",
-           plotlyOutput("demo", height = "700px")
+           plotlyOutput("demo", height = "500px")
             ),
             
         tabItem(tabName = "man",
-            plotlyOutput("vax_man", height = "700px")
+            plotlyOutput("vax_man", height = "500px")
             ),
         tabItem(tabName = "vax",
-            plotlyOutput("vax_name", height = "700px")
+            plotlyOutput("vax_name", height = "500px")
              ),
         tabItem(tabName = "about",
                 h3("VAERS - In Search of Death"),
@@ -119,7 +121,7 @@ server <- function(input, output) {
     colorbar(title = "Reported Deaths") %>%
     layout(
       title = paste("VAERS Reported Deaths for ", yr()),
-      height = 700,
+      height = 500,
       geo = g
     )})
   
@@ -129,18 +131,34 @@ server <- function(input, output) {
     geo_p()
   })
 
-  ded$deaths <- as.integer(ded$deaths)
-  ded$year <- as.integer(ded$year)
-
-  geo_time_plot <- ggplot(ded, aes(x = year, y = deaths, colour = STATE )) + 
-       geom_line() + 
-      ylab(label="Number of Deaths") + xlab("Year") + 
-      scale_x_continuous(breaks = c(2008:2018), limits = c(2008, 2018))+ 
-      ggtitle("VAERS Reported Deaths by State") 
-
-  output$geo_time <- renderPlotly({
-    geo_time_plot
+  output$click <- renderPrint({
+    d <- event_data("plotly_click")
+    if (is.null(d)) "Click on a state to view trend data for that state!" 
+    
+    else
+    {
+      st <- yr_ded()[(d$pointNumber+1),2]
+      ded$deaths <- as.integer(ded$deaths)
+      ded$year <- as.integer(ded$year)
+      
+      # Limit to state
+      ded_st <- ded[ded$STATE == st,]
+      
+      geo_time_plot <- ggplot(ded_st, aes(x = year, y = deaths, colour = STATE )) + 
+        geom_line() + 
+        ylab(label=paste("Number of Deaths in ", st)) + xlab("Year") + 
+        scale_x_continuous(breaks = c(2008:2018), limits = c(2008, 2018))+ 
+        ggtitle(paste("VAERS Reported Deaths in ", st))
+      output$geo_time <- renderPlotly({
+        geo_time_plot
+      })
+    }
   })
+  
+ 
+
+
+
   
   
   
@@ -167,7 +185,7 @@ server <- function(input, output) {
   demo_p <- plot_ly(demo, x = ~AGE_YRS, y = ~year, text = ~ded, type = 'scatter', 
                     size = ~ded, colors = cols, mode = 'markers', 
                marker = list(opacity = .5, sizemode = 'diameter', opacity = 1), color = ~SEX) %>%
-    layout(title = 'Vaccine Deaths by Age and Gender Over Time', height = 700,
+    layout(title = 'Vaccine Deaths by Age and Gender Over Time', height = 500,
         xaxis = list(title = 'Age (Years)',
                    gridcolor = 'rgb(0, 0, 0)'),
        yaxis = list(title = 'Year of Vaccine',
