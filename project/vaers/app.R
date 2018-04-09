@@ -28,13 +28,19 @@ q3 <- dbSendQuery(con, 'select vax.VAX_TYPE as type, vax.VAX_MANU as mfg, vax.VA
 vax <- dbFetch(q3, n = -1)
 
 ui <- dashboardPage(
-    dashboardHeader(title = "VAERS Data"),
-    dashboardSidebar(
+    
+  dashboardHeader(
+    title = "VAERS - In Search of Death",
+    titleWidth = 300
+  ),
+  
+  dashboardSidebar(
       sidebarMenu(
         menuItem("Geographic", tabName = "geo", icon = icon("map-marker")),
         menuItem("Demographic", icon = icon("users"), tabName = "demo"),
         menuItem("Manufacturer", icon = icon("industry"), tabName = "man"),
         menuItem("Vaccine", icon = icon("medkit"), tabName = "vax"),
+        menuItem("About", icon = icon("book"), tabName = "about"),
         sliderInput("year_sel", label = "Select Year", min = 2008, max = 2018, value = 2008, 
                     sep = "", step = 1 ) 
         
@@ -58,7 +64,15 @@ ui <- dashboardPage(
             ),
         tabItem(tabName = "vax",
             plotlyOutput("vax_name", height = "700px")
-             )
+             ),
+        tabItem(tabName = "about",
+                h3("VAERS - In Search of Death"),
+                h4("Mike Lape"),
+                h4("This project was made using publicly available data from"),
+                a(href="https://vaers.hhs.gov", "Vaccine Adverse Events Reporting System (VAERS)"),
+                h4("Project sourcecode is availabe on"),
+                a(href="https://github.com/achtungmike/hc_db/blob/master/project/vaers/app.R", "GitHub")
+        )
         )
        
     )
