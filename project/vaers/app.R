@@ -88,6 +88,8 @@ server <- function(input, output) {
   # The year from the slider input
   yr <- reactive({input$year_sel})
 
+
+  
   # We are going to have a simple plot across the bottom that just tracks all the states over time
   # so we need to have data by state by year
   ded$year <- as.integer(ded$year)
@@ -157,7 +159,12 @@ server <- function(input, output) {
   
  
 
-
+  observeEvent(input$year_sel, {
+    print("Before")
+    output$geo_time <- renderPlotly({
+      plotly_empty()
+    })
+  }, ignoreInit = T)
 
   
   
