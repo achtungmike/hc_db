@@ -27,6 +27,11 @@ q3 <- dbSendQuery(con, 'select vax.VAX_TYPE as type, vax.VAX_MANU as mfg, vax.VA
                     vax.VAERS_ID = report.VAERS_ID where report.DIED = "Y"' )
 vax <- dbFetch(q3, n = -1)
 
+q4 <- dbSendQuery(con, 'select count(*) as deaths,  year from REPORT  where died = "Y" group by  year ')
+
+all <-  dbFetch(q4, n = -1)
+
+
 ui <- dashboardPage(
     
   dashboardHeader(
@@ -36,6 +41,7 @@ ui <- dashboardPage(
   
   dashboardSidebar(
       sidebarMenu(
+        menuItem("Overall", tabName = "over" , icon = icon("signal")),
         menuItem("Geographic", tabName = "geo", icon = icon("map-marker")),
         menuItem("Demographic", icon = icon("users"), tabName = "demo"),
         menuItem("Manufacturer", icon = icon("industry"), tabName = "man"),
@@ -49,6 +55,10 @@ ui <- dashboardPage(
     ),
     dashboardBody(
       tabItems(
+        
+        tabItem(tabName = "over",
+                plotlyOutput("over", height = "500px")
+        ),
         tabItem(tabName = "geo",
            plotlyOutput("geo", height = "500px"),
            textOutput("click"),
@@ -85,6 +95,18 @@ ui <- dashboardPage(
 server <- function(input, output) {
   
 
+  # Simple line plot for all trend line
+  #pl <- ggplot(data = all, aes(x = year, y = deaths))
+  
+  pl <- plot_ly(all, x = ~year, y = ~deaths, type = 'scatter', mode = 'lines+markers')%>%
+    layout(title = "Trend in Deaths Reported to VAERS",
+           xaxis = list(title = "Year"),
+           yaxis = list (title = "Deaths"))
+  
+  
+  output$over<- renderPlotly({
+    pl
+  })
   # The year from the slider input
   yr <- reactive({input$year_sel})
 
